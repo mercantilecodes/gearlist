@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Mercantile Gear Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#111;
+  --surface:#1c1c1e;
+  --surface2:#242426;
+  --border:#2c2c2e;
+  --border2:#3a3a3c;
+  --text:#f0f0f0;
+  --text2:#aaa;
+  --text3:#555;
+  --red:#9b1c1c;
+  --red-bright:#dc2626;
+  --highlight:#2a1f1f;
+  --green-bg:#0f2318;
+  --blue-bg:#0f1a2e;
+  --yellow-bg:#1e1a0a;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding:20px;font-size:14px}
+h1{font-size:20px;font-weight:500;margin-bottom:2px;color:var(--text)}
+.subtitle{font-size:12px;color:var(--text3);margin-bottom:20px;letter-spacing:0.3px}
+
+/* Job box — top nav */
+.job-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+.job-box-top{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-pill{padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:inherit;transition:all 0.15s}
+.filter-pill.active{background:var(--red);color:#fff;border-color:var(--red)}
+.job-tabs-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.job-tab{padding:6px 13px;border:1px solid var(--border2);border-radius:7px;font-size:13px;cursor:pointer;background:var(--surface2);color:var(--text2);transition:all 0.15s;white-space:nowrap}
+.job-tab:hover{border-color:var(--border2);color:var(--text)}
+.job-tab.active{background:var(--surface2);color:var(--text);border-color:var(--text3)}
+.job-tab.active-job{border-left:3px solid var(--red-bright)}
+.add-job-btn{padding:6px 12px;border:1px dashed var(--border2);border-radius:7px;font-size:12px;cursor:pointer;background:transparent;color:var(--text3);white-space:nowrap;font-family:inherit}
+.add-job-btn:hover{color:var(--text2);border-color:var(--text3)}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.stat{background:var(--surface);border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
+.stat-label{font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px}
+.stat-value{font-size:17px;font-weight:500;color:var(--text)}
+.stat-value.accent{color:var(--red-bright)}
+
+/* Job meta bar */
+.job-meta{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 16px;margin-bottom:12px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.meta-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;margin-right:6px}
+.meta-date{border:1px solid var(--border2);border-radius:6px;padding:4px 8px;font-size:13px;font-family:inherit;color:var(--text);background:var(--surface2);color-scheme:dark}
+.job-action-btns{display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap}
+.btn-action{padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);white-space:nowrap;transition:all 0.15s}
+.btn-action:hover{color:var(--text);border-color:var(--text3)}
+.btn-action.accent{background:var(--red);border-color:var(--red);color:#fff}
+.btn-action.accent:hover{background:var(--red-bright);border-color:var(--red-bright)}
+
+/* Pack panel */
+.pack-panel{background:var(--surface);border-radius:10px;border:1px solid var(--border);margin-bottom:14px;overflow:hidden}
+.pack-panel-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.pack-panel-title{font-size:13px;font-weight:500;color:var(--text)}
+.pack-progress{font-size:12px;color:var(--text3)}
+.pack-col-headers{display:grid;grid-template-columns:1fr 70px 70px;gap:8px;padding:5px 16px 3px;border-bottom:1px solid var(--border)}
+.pack-col-hdr{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;text-align:center}
+.pack-col-hdr:first-child{text-align:left}
+.pack-item{display:grid;grid-template-columns:1fr 70px 70px;gap:8px;align-items:center;padding:7px 16px;border-bottom:1px solid var(--border)}
+.pack-item:last-child{border-bottom:none}
+.pack-item.is-returned{background:var(--blue-bg)}
+.pack-item.is-packed{background:var(--green-bg)}
+.pack-item-name{font-size:13px;color:var(--text)}
+.pack-item-note{font-size:11px;color:var(--text3);margin-top:1px}
+.cb-cell{display:flex;justify-content:center;align-items:center}
+.cb-cell input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--red-bright)}
+.empty-pack{padding:18px;text-align:center;font-size:13px;color:var(--text3)}
+
+/* Gear sections */
+.section{margin-bottom:8px;background:var(--surface);border-radius:10px;border:1px solid var(--border);overflow:hidden}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none}
+.section-title{font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px}
+.section-badge{font-size:11px;color:var(--red-bright);background:var(--highlight);padding:2px 8px;border-radius:20px}
+.chevron{font-size:11px;color:var(--text3);transition:transform 0.2s;display:inline-block}
+.chevron.open{transform:rotate(180deg)}
+.gear-list{padding:0 0 4px}
+.gear-item{display:grid;grid-template-columns:20px 1fr 60px 110px;gap:8px;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border)}
+.gear-item:last-child{border-bottom:none}
+.gear-item.is-selected{background:var(--yellow-bg)}
+.gear-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--red-bright)}
+.gear-item label{font-size:13px;cursor:pointer;color:var(--text)}
+.price-display{font-size:12px;color:var(--text3);text-align:right;white-space:nowrap;cursor:pointer}
+.price-display:hover{color:var(--text2)}
+.price-display.has-custom{color:var(--red-bright);font-weight:500}
+.note-input{font-size:12px;color:var(--text2);border:none;background:transparent;width:100%;text-align:right;outline:none;font-family:inherit}
+.note-input::placeholder{color:var(--text3)}
+.add-custom-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;color:var(--text3);cursor:pointer;border:none;background:none;font-family:inherit;width:100%}
+.add-custom-btn:hover{color:var(--text2)}
+
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:90%;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,0.5)}
+.modal h3{font-size:16px;font-weight:500;margin-bottom:16px;color:var(--text)}
+.modal-field{margin-bottom:12px}
+.modal-field label{display:block;font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:6px;font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text);color-scheme:dark}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{outline:none;border-color:var(--text3)}
+.modal-divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.modal-section-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.btn-primary{padding:8px 18px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn-primary:hover{background:var(--red-bright)}
+.btn-cancel{padding:8px 18px;background:transparent;border:1px solid var(--border2);border-radius:6px;font-size:13px;cursor:pointer;color:var(--text2);font-family:inherit}
+.btn-cancel:hover{border-color:var(--text3);color:var(--text)}
+.modal-note{font-size:12px;color:var(--text3);margin-top:8px}
+.import-status{font-size:12px;color:var(--text3);min-height:18px;margin-bottom:8px}
+.import-or{text-align:center;font-size:12px;color:var(--text3);margin:12px 0}
+
+/* Archive */
+.archive-list{display:flex;flex-direction:column;gap:8px}
+.archive-card{background:var(--surface);border-radius:10px;border:1px solid var(--border);padding:13px 16px;display:flex;align-items:center;justify-content:space-between}
+.archive-card-info h4{font-size:14px;font-weight:500;color:var(--text)}
+.archive-card-info p{font-size:12px;color:var(--text3);margin-top:2px}
+.archive-card-actions{display:flex;gap:6px}
+.empty-state{padding:40px;text-align:center;color:var(--text3);font-size:13px}
+
+/* Toast */
+.saved-toast{position:fixed;bottom:20px;right:20px;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:7px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:200}
+.saved-toast.show{opacity:1}
+
+/* Print styles */
+@media print{
+  body{background:#fff;color:#000;padding:12px}
+  .job-box,.stats,.job-meta,.section,.saved-toast,.modal-overlay{display:none!important}
+  .pack-panel{border:1px solid #ccc;border-radius:0}
+  .pack-panel-header{border-bottom:1px solid #ccc}
+  .pack-item{border-bottom:1px solid #eee}
+  .pack-item.is-returned{background:#e8f4ff}
+  .pack-item.is-packed{background:#e8faf0}
+  .pack-item-name{color:#000}
+  .pack-item-note{color:#666}
+  #printHeader{display:block!important}
+}
+#printHeader{display:none;margin-bottom:16px}
+#printHeader h2{font-size:18px;font-weight:600;margin-bottom:4px}
+#printHeader p{font-size:12px;color:#555}
+</style>
+</head>
+<body>
+
+<h1>Mercantile Gear Tracker</h1>
+<p class="subtitle">Mercantile Images, LLC</p>
+
+<!-- Print header (hidden on screen) -->
+<div id="printHeader">
+  <h2 id="printTitle"></h2>
+  <p id="printMeta"></p>
+</div>
+
+<!-- Job box -->
+<div class="job-box">
+  <div class="job-box-top">
+    <button class="filter-pill active" id="filterActive" onclick="switchView('active')">Active</button>
+    <button class="filter-pill" id="filterArchive" onclick="switchView('archive')">Archived</button>
+  </div>
+  <div class="job-tabs-row" id="jobTabsRow"></div>
+</div>
+
+<div id="mainContent"></div>
+<div class="saved-toast" id="toast">Saved</div>
+
+<!-- New Job Modal -->
+<div class="modal-overlay" id="newJobModal">
+  <div class="modal" style="max-width:480px">
+    <h3>New Job</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="modal-field" style="grid-column:1/-1"><label>Job Name</label><input type="text" id="njName" placeholder="e.g. NCAR Shoot" /></div>
+      <div class="modal-field"><label>Client</label><input type="text" id="njClient" placeholder="Client name" /></div>
+      <div class="modal-field"><label>Shoot Date</label><input type="text" id="njDate" placeholder="e.g. 6/15" /></div>
+      <div class="modal-field"><label>Pickup Date</label><input type="date" id="njPickup" /></div>
+      <div class="modal-field"><label>Return Date</label><input type="date" id="njReturn" /></div>
+      <div class="modal-field" style="grid-column:1/-1"><label>Rental Days</label><input type="number" id="njDays" placeholder="1" min="1" value="1" /></div>
+    </div>
+    <hr class="modal-divider">
+    <div class="modal-section-label">Or import from email</div>
+    <div class="modal-field">
+      <textarea id="emailText" rows="5" placeholder="Paste gear request email here and click Parse..." style="resize:vertical"></textarea>
+    </div>
+    <div class="import-status" id="importStatus"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('newJobModal')">Cancel</button>
+      <button class="btn-cancel" id="importBtn" onclick="importFromEmail()">Parse Email</button>
+      <button class="btn-primary" onclick="addJob()">Create Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- Price Edit Modal -->
+<div class="modal-overlay" id="priceModal">
+  <div class="modal">
+    <h3>Set Rental Price</h3>
+    <div class="modal-field"><label id="priceModalItem">Item</label><input type="number" id="priceModalVal" placeholder="0" min="0" /></div>
+    <p class="modal-note">Overrides the default price for this job only.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('priceModal')">Cancel</button>
+      <button class="btn-primary" onclick="savePriceOverride()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Item Modal -->
+<div class="modal-overlay" id="customItemModal">
+  <div class="modal">
+    <h3>Add Custom Item</h3>
+    <div class="modal-field"><label>Item Name</label><input type="text" id="ciName" placeholder="e.g. DJI Mavic 3 Pro" /></div>
+    <div class="modal-field"><label>Category</label>
+      <select id="ciCategory">
+        <option>Camera</option><option>Lenses</option><option>Support</option><option>Audio</option>
+        <option>Lighting</option><option>Grip</option><option>Video Assist</option><option>Streaming</option>
+        <option>Carts & Production</option><option>Vehicle</option><option>Custom</option>
+      </select>
+    </div>
+    <div class="modal-field"><label>Daily Rate ($)</label><input type="number" id="ciPrice" placeholder="0" min="0" /></div>
+    <div class="modal-field"><label>Save to</label>
+      <select id="ciScope">
+        <option value="job">This job only</option>
+        <option value="master">Master gear list (all jobs)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('customItemModal')">Cancel</button>
+      <button class="btn-primary" onclick="addCustomItem()">Add Item</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY='mercantile_gear_v3';
+
+const BASE_GEAR={
+  Camera:[{n:"Red Raptor 8K VV",p:900},{n:"Canon R5C",p:350},{n:"Canon C500 MKII",p:450},{n:"Sony FX6",p:350},{n:"Sony FX3",p:200}],
+  Lenses:[{n:"Laowa Ranger 16-30mm T2.9",p:150},{n:"Laowa Ranger 28-75mm T2.9",p:150},{n:"Laowa Ranger 75-180mm T2.9",p:150},{n:"Canon RF 15-35mm F/2.8",p:75},{n:"Canon RF 28-70mm F/2",p:75},{n:"Canon EF 70-200mm F/2.8",p:75},{n:"Canon EF 35mm F/1.4",p:50},{n:"Canon EF 85mm F/1.4",p:50},{n:"Nikon Vintage 24mm F/2",p:30},{n:"Nikon Vintage 35mm F/2",p:30},{n:"Nikon Vintage 50mm F/1.2",p:30},{n:"Nikon Vintage 85mm F/1.4",p:30}],
+  Support:[{n:"CamGear Elite 18 Tripod",p:60},{n:"Sachtler Video 18 Tripod",p:60},{n:"Sachtler Video 17 Tripod",p:50},{n:"Dana Dolly Kit",p:50},{n:"Tripod Dolly",p:25},{n:"DJI Ronin RS3",p:125},{n:"EasyRig Vario 5 + Serene Arm",p:175}],
+  Audio:[{n:"Sound Devices Mix Pre 6",p:250},{n:"Rode Wireless Lav",p:0},{n:"Sanken COS 11D Wired Lav",p:0},{n:"Sennheiser MKH 50 Dialog Mic",p:0},{n:"Boom Pole",p:0},{n:"Headphones",p:0}],
+  Lighting:[{n:"Aputure 1200X",p:250},{n:"Aputure Storm 400X",p:125},{n:"Aputure 600D",p:105},{n:"Aputure 80C",p:50},{n:"Amaran F21C",p:50},{n:"Amaran F22C + Lantern",p:75},{n:"Aputure B7C (x2)",p:15},{n:"Intellytech Mega 8 RGBWW",p:150},{n:"Pavotubes",p:125}],
+  Grip:[{n:"4x4 Butterfly Kit",p:0},{n:"6x6 Butterfly Kit",p:0},{n:"8x8 Butterfly Kit",p:0},{n:"C-Stands (12)",p:0},{n:"Double/Triple Riser Combos",p:0},{n:"Baby Stands (6)",p:0},{n:"Shot Bags 25lb (12)",p:0},{n:"Shot Bags 35lb (8)",p:0},{n:"Apple Box Sets",p:0}],
+  "Video Assist":[{n:"Atomos 19M 19in Monitor",p:75},{n:"Flanders DM240 24in Monitor",p:175},{n:"Flanders DM170 17in Monitor",p:75},{n:"SmallHD Cine7 500XT",p:150},{n:"SmallHD Ultra7 7in Monitor",p:125},{n:"Teradek Bolt 6 (1:1)",p:150},{n:"Teradek Bolt 500 XT (1:2)",p:100},{n:"Macbook Pro",p:50},{n:"iPad M1",p:35},{n:"iKan Teleprompter",p:125}],
+  Streaming:[{n:"ATEM Mini Pro",p:0},{n:"Camlink 4K",p:150},{n:"Scarlett 4i4",p:0},{n:"SDI/HDMI Converters",p:0},{n:"SDI Cable set",p:0},{n:"HDMI Cable set",p:0},{n:"Hollyland Solidcom (6-pack)",p:150},{n:"vMix PC",p:300}],
+  "Carts & Production":[{n:"Magliner Junior Cart",p:0},{n:"Rock n Roller R12",p:0},{n:"Grip House C-Stand Cart",p:0},{n:"Uline Hampers (x2)",p:0},{n:"Folding Tables (x2)",p:0},{n:"Camp Chairs (x6)",p:0},{n:"5ft Step Ladder",p:0},{n:"8ft Step Ladder",p:0}],
+  Vehicle:[{n:"2020 Ram Promaster 2500 + Liftgate",p:150}]
+};
+
+const DEFAULT_JOBS=[
+  {id:1,name:"NCAR Shoot",date:"5/20",client:"invisible.film",days:1,pickup:'',returnDate:'',archived:false,checked:{},packed:{},returned:{},notes:{},customPrices:{},customItems:[]},
+  {id:2,name:"PHC / IMA",date:"6/2-6/3",client:"IMA Corp",days:2,pickup:'',returnDate:'',archived:false,
+    checked:{"Canon C500 MKII":true,"Canon RF 15-35mm F/2.8":true,"Canon RF 28-70mm F/2":true,"Canon EF 70-200mm F/2.8":true,"Canon EF 85mm F/1.4":true,"CamGear Elite 18 Tripod":true,"DJI Ronin RS3":true,"Sound Devices Mix Pre 6":true,"Rode Wireless Lav":true},
+    packed:{},returned:{},notes:{"Canon C500 MKII":"IMA has on-site"},customPrices:{},customItems:[]},
+  {id:3,name:"Cadence Order",date:"TBD",client:"Cadence",days:1,pickup:'',returnDate:'',archived:false,
+    checked:{"Canon C500 MKII":true,"Laowa Ranger 16-30mm T2.9":true,"Laowa Ranger 28-75mm T2.9":true,"Laowa Ranger 75-180mm T2.9":true,"Sachtler Video 17 Tripod":true,"Dana Dolly Kit":true,"EasyRig Vario 5 + Serene Arm":true,"Atomos 19M 19in Monitor":true,"SmallHD Ultra7 7in Monitor":true,"Teradek Bolt 6 (1:1)":true,"Teradek Bolt 500 XT (1:2)":true,"Hollyland Solidcom (6-pack)":true,"Folding Tables (x2)":true,"Camp Chairs (x6)":true,"SDI Cable set":true,"HDMI Cable set":true},
+    packed:{},returned:{},
+    notes:{"Canon C500 MKII":"PL mount + card reader?","Laowa Ranger 16-30mm T2.9":"filtration: 1/8, 1/4, pro mist, HBM, polarizer","SDI Cable set":"25ft — confirm","HDMI Cable set":"25ft — confirm","SmallHD Ultra7 7in Monitor":"also wants Shinobi 5in — not in kit","Atomos 19M 19in Monitor":"also wants Odyssey 7Q — not in kit"},
+    customPrices:{},customItems:[]}
+];
+
+function loadState(){try{const r=localStorage.getItem(STORAGE_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({jobs,masterCustom,activeId,nextId,collapsed,packCollapsed,currentView}));showToast();}catch(e){}}
+let toastTimer=null;
+function showToast(){const t=document.getElementById('toast');t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1400);}
+
+const saved=loadState();
+let jobs=saved?.jobs||JSON.parse(JSON.stringify(DEFAULT_JOBS));
+let masterCustom=saved?.masterCustom||{};
+let activeId=saved?.activeId||1;
+let nextId=saved?.nextId||4;
+let collapsed=saved?.collapsed||{};
+let packCollapsed=saved?.packCollapsed||false;
+let currentView=saved?.currentView||'active';
+let priceModalItem=null;
+
+jobs.forEach(j=>{
+  if(!j.customPrices) j.customPrices={};
+  if(!j.customItems) j.customItems=[];
+  if(j.archived===undefined) j.archived=false;
+  if(!j.days) j.days=1;
+  if(!j.pickup) j.pickup='';
+  if(!j.returnDate) j.returnDate='';
+});
+
+function getGear(){
+  const g=JSON.parse(JSON.stringify(BASE_GEAR));
+  for(const [cat,items] of Object.entries(masterCustom)){
+    if(!g[cat]) g[cat]=[];
+    items.forEach(i=>{if(!g[cat].find(x=>x.n===i.n)) g[cat].push(i);});
+  }
+  return g;
+}
+
+function getEffectivePrice(item,job){
+  if(job.customPrices&&job.customPrices[item]!==undefined) return job.customPrices[item];
+  const found=Object.values(getGear()).flat().find(g=>g.n===item);
+  return found?found.p:0;
+}
+
+function getJob(){return jobs.find(j=>j.id===activeId);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function addJob(){
+  const name=document.getElementById('njName').value.trim();
+  if(!name)return;
+  const job={id:nextId++,name,
+    client:document.getElementById('njClient').value.trim(),
+    date:document.getElementById('njDate').value.trim(),
+    days:parseInt(document.getElementById('njDays').value)||1,
+    pickup:document.getElementById('njPickup').value,
+    returnDate:document.getElementById('njReturn').value,
+    archived:false,checked:{},packed:{},returned:{},notes:{},customPrices:{},customItems:[]};
+  jobs.push(job);activeId=job.id;currentView='active';
+  closeModal('newJobModal');
+  ['njName','njClient','njDate','njPickup','njReturn'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('njDays').value='1';
+  document.getElementById('emailText').value='';
+  document.getElementById('importStatus').textContent='';
+  saveState();render();
+}
+
+function archiveJob(id){
+  const j=jobs.find(j=>j.id===id);if(!j)return;
+  j.archived=true;
+  const active=jobs.filter(j=>!j.archived);
+  activeId=active.length?active[active.length-1].id:null;
+  saveState();render();
+}
+function unarchiveJob(id){const j=jobs.find(j=>j.id===id);if(!j)return;j.archived=false;activeId=id;currentView='active';saveState();render();}
+function deleteJob(id){if(!confirm('Permanently delete this job?'))return;jobs=jobs.filter(j=>j.id!==id);saveState();render();}
+function switchJob(id){activeId=id;saveState();render();}
+function switchView(v){currentView=v;saveState();render();}
+function toggleCheck(item){const j=getJob();j.checked[item]=!j.checked[item];if(!j.checked[item]){j.packed[item]=false;j.returned[item]=false;}saveState();render();}
+function togglePacked(item){const j=getJob();j.packed[item]=!j.packed[item];saveState();render();}
+function toggleReturned(item){const j=getJob();j.returned[item]=!j.returned[item];saveState();render();}
+function setNote(item,val){getJob().notes[item]=val;saveState();}
+function toggleSec(sec){collapsed[sec]=!collapsed[sec];saveState();render();}
+function togglePack(){packCollapsed=!packCollapsed;saveState();render();}
+function setJobField(id,field,val){const j=jobs.find(j=>j.id===id);if(!j)return;j[field]=val;saveState();}
+
+function openPriceModal(item){
+  priceModalItem=item;
+  const job=getJob();
+  document.getElementById('priceModalItem').textContent=item;
+  const cur=job.customPrices[item]!==undefined?job.customPrices[item]:getEffectivePrice(item,{customPrices:{}});
+  document.getElementById('priceModalVal').value=cur||'';
+  openModal('priceModal');
+}
+function savePriceOverride(){
+  if(!priceModalItem)return;
+  getJob().customPrices[priceModalItem]=parseFloat(document.getElementById('priceModalVal').value)||0;
+  closeModal('priceModal');saveState();render();
+}
+
+function openCustomItemModal(){openModal('customItemModal');}
+function addCustomItem(){
+  const name=document.getElementById('ciName').value.trim();
+  if(!name)return;
+  const cat=document.getElementById('ciCategory').value;
+  const price=parseFloat(document.getElementById('ciPrice').value)||0;
+  const scope=document.getElementById('ciScope').value;
+  const item={n:name,p:price};
+  if(scope==='master'){
+    if(!masterCustom[cat]) masterCustom[cat]=[];
+    if(!masterCustom[cat].find(x=>x.n===name)) masterCustom[cat].push(item);
+    const j=getJob();if(j) j.checked[name]=true;
+  } else {
+    const j=getJob();
+    if(j){
+      if(!j.customItems) j.customItems=[];
+      if(!j.customItems.find(x=>x.n===name)) j.customItems.push({...item,cat});
+      j.checked[name]=true;
+    }
+  }
+  closeModal('customItemModal');
+  ['ciName','ciPrice'].forEach(id=>document.getElementById(id).value='');
+  saveState();render();
+}
+
+function promptDays(){
+  const job=getJob();if(!job)return;
+  const val=prompt('Number of rental days:',job.days||1);
+  if(val===null)return;
+  const d=parseInt(val);
+  if(d>0){job.days=d;saveState();render();}
+}
+
+function publishToCalendar(){
+  const job=getJob();if(!job)return;
+  if(!job.pickup||!job.returnDate){alert('Please set a pickup and return date first.');return;}
+  const title=encodeURIComponent((job.client?job.client+' - ':'')+job.name+' - Rental');
+  const body=encodeURIComponent('Rental order: https://mercantilecodes.github.io/gearlist');
+  const start=job.pickup.replace(/-/g,'');
+  const endDate=new Date(job.returnDate);endDate.setDate(endDate.getDate()+1);
+  const end=endDate.toISOString().slice(0,10).replace(/-/g,'');
+  window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${body}`,'_blank');
+}
+
+function downloadPDF(){
+  const job=getJob();if(!job)return;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'pt',format:'letter'});
+  const margin=48;
+  let y=margin;
+  const pageW=doc.internal.pageSize.getWidth();
+  const contentW=pageW-(margin*2);
+
+  // Header
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(16);
+  doc.text('Mercantile Images, LLC',margin,y);
+  y+=20;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(11);
+  doc.setTextColor(120,120,120);
+  doc.text('trevrmerchant.com  ·  trevrmerchant@gmail.com',margin,y);
+  y+=28;
+
+  // Job title
+  doc.setTextColor(20,20,20);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(14);
+  const jobTitle=(job.client?job.client+' — ':'')+job.name;
+  doc.text(jobTitle,margin,y);
+  y+=18;
+
+  // Job meta
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(10);
+  doc.setTextColor(100,100,100);
+  const parts=[job.date?'Date: '+job.date:'',job.pickup?'Pickup: '+job.pickup:'',job.returnDate?'Return: '+job.returnDate:'',(job.days||1)+' day rental'].filter(Boolean);
+  doc.text(parts.join('   ·   '),margin,y);
+  y+=24;
+
+  // Divider
+  doc.setDrawColor(220,220,220);
+  doc.line(margin,y,pageW-margin,y);
+  y+=16;
+
+  // Pack list header
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(20,20,20);
+  doc.text('Pack List',margin,y);
+  y+=16;
+
+  // Column headers
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.setTextColor(150,150,150);
+  doc.text('ITEM',margin,y);
+  doc.text('PACKED',pageW-margin-100,y);
+  doc.text('RETURNED',pageW-margin-30,y);
+  y+=12;
+  doc.setDrawColor(235,235,235);
+  doc.line(margin,y,pageW-margin,y);
+  y+=10;
+
+  // Items
+  const selectedItems=Object.entries(job.checked).filter(([,v])=>v).map(([k])=>k);
+  doc.setFontSize(10);
+  for(const item of selectedItems){
+    if(y>doc.internal.pageSize.getHeight()-60){
+      doc.addPage();y=margin;
+    }
+    doc.setTextColor(20,20,20);
+    doc.setFont('helvetica','normal');
+    // Truncate long names
+    const maxW=contentW-140;
+    let name=item;
+    while(doc.getTextWidth(name)>maxW&&name.length>10) name=name.slice(0,-1);
+    if(name!==item) name=name.slice(0,-1)+'…';
+    doc.text(name,margin,y);
+    // Checkboxes
+    doc.setDrawColor(180,180,180);
+    doc.rect(pageW-margin-112,y-9,11,11);
+    doc.rect(pageW-margin-42,y-9,11,11);
+    const note=job.notes[item]||'';
+    if(note){
+      y+=13;
+      doc.setFontSize(8);
+      doc.setTextColor(150,150,150);
+      doc.text(note,margin+8,y);
+      doc.setFontSize(10);
+    }
+    y+=18;
+    doc.setDrawColor(245,245,245);
+    doc.line(margin,y-6,pageW-margin,y-6);
+  }
+
+  // Total
+  y+=8;
+  const total=selectedItems.reduce((s,k)=>s+getEffectivePrice(k,job),0)*(job.days||1);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(20,20,20);
+  doc.text(`Total Rental: $${total.toLocaleString()}`,margin,y);
+
+  const filename=[(job.client||'').replace(/\s+/g,'-'),job.name.replace(/\s+/g,'-'),'PackList'].filter(Boolean).join('_')+'.pdf';
+  doc.save(filename);
+}
+
+async function importFromEmail(){
+  const text=document.getElementById('emailText').value.trim();
+  if(!text){alert('Please paste an email first.');return;}
+  const btn=document.getElementById('importBtn');
+  const status=document.getElementById('importStatus');
+  btn.disabled=true;btn.textContent='Parsing...';status.textContent='Sending to Claude...';
+  const allItems=Object.values(BASE_GEAR).flat().map(g=>g.n);
+  const systemPrompt=`You are a gear request parser for a video production rental company. Given an email, extract job details and match requested gear against the master gear list.\n\nMaster gear list:\n${allItems.join(', ')}\n\nRespond ONLY with a valid JSON object, no markdown, no explanation:\n{"name":"short job name","client":"client or company name","date":"shoot date if mentioned, else empty string","days":1,"pickup":"YYYY-MM-DD if mentioned, else empty string","returnDate":"YYYY-MM-DD if mentioned, else empty string","checked":["exact item name from master list"],"customItems":[{"n":"item name not on master list","p":0,"cat":"best category"}],"notes":{"exact item name":"special notes like mounts, media, accessories"}}\n\nMatch requested gear as closely as possible to items on the master list. If something is not on the list, put it in customItems. Extract dates in YYYY-MM-DD format only.`;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:systemPrompt,messages:[{role:'user',content:'Parse this gear request email:\n\n'+text}]})});
+    const data=await resp.json();
+    const raw=data.content.find(b=>b.type==='text')?.text||'';
+    let parsed;
+    try{parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());}
+    catch(e){throw new Error('Could not parse Claude response.');}
+    // Pre-fill the form fields
+    if(parsed.name) document.getElementById('njName').value=parsed.name;
+    if(parsed.client) document.getElementById('njClient').value=parsed.client;
+    if(parsed.date) document.getElementById('njDate').value=parsed.date;
+    if(parsed.days) document.getElementById('njDays').value=parsed.days;
+    if(parsed.pickup) document.getElementById('njPickup').value=parsed.pickup;
+    if(parsed.returnDate) document.getElementById('njReturn').value=parsed.returnDate;
+    // Store parsed gear to apply on job creation
+    window._parsedEmail=parsed;
+    const cnt=(parsed.checked||[]).length+(parsed.customItems||[]).length;
+    status.textContent=`✓ Parsed — ${cnt} gear items found. Review fields and click Create Job.`;
+  }catch(e){
+    status.textContent='Error: '+e.message;
+  }finally{
+    btn.disabled=false;btn.textContent='Parse Email';
+  }
+}
+
+// Override addJob to apply parsed email gear if present
+const _origAddJob=addJob;
+function addJob(){
+  const name=document.getElementById('njName').value.trim();
+  if(!name)return;
+  const job={id:nextId++,name,
+    client:document.getElementById('njClient').value.trim(),
+    date:document.getElementById('njDate').value.trim(),
+    days:parseInt(document.getElementById('njDays').value)||1,
+    pickup:document.getElementById('njPickup').value,
+    returnDate:document.getElementById('njReturn').value,
+    archived:false,checked:{},packed:{},returned:{},notes:{},customPrices:{},customItems:[]};
+  // Apply parsed email gear if available
+  if(window._parsedEmail){
+    const p=window._parsedEmail;
+    (p.checked||[]).forEach(i=>{job.checked[i]=true;});
+    (p.customItems||[]).forEach(ci=>{job.customItems.push(ci);job.checked[ci.n]=true;});
+    if(p.notes) job.notes=p.notes;
+    window._parsedEmail=null;
+  }
+  jobs.push(job);activeId=job.id;currentView='active';
+  closeModal('newJobModal');
+  ['njName','njClient','njDate','njPickup','njReturn'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('njDays').value='1';
+  document.getElementById('emailText').value='';
+  document.getElementById('importStatus').textContent='';
+  saveState();render();
+}
+
+function render(){
+  document.getElementById('filterActive').classList.toggle('active',currentView==='active');
+  document.getElementById('filterArchive').classList.toggle('active',currentView==='archive');
+
+  const activeJobs=jobs.filter(j=>!j.archived);
+  const archivedJobs=jobs.filter(j=>j.archived);
+  const displayJobs=currentView==='active'?activeJobs:archivedJobs;
+
+  document.getElementById('jobTabsRow').innerHTML=
+    displayJobs.map(j=>`<button class="job-tab${j.id===activeId?' active-job':''}" onclick="switchJob(${j.id})">${j.name}${j.date?` <span style="opacity:0.4;font-size:11px">${j.date}</span>`:''}</button>`).join('')+
+    `<button class="add-job-btn" onclick="openModal('newJobModal')">+ New job</button>`;
+
+  const content=document.getElementById('mainContent');
+  const job=getJob();
+
+  if(currentView==='archive'){
+    if(!archivedJobs.length){
+      content.innerHTML=`<div class="empty-state">No archived jobs yet.</div>`;
+    } else {
+      content.innerHTML=`<div class="archive-list">`+archivedJobs.map(j=>{
+        const cnt=Object.values(j.checked).filter(Boolean).length;
+        return `<div class="archive-card">
+          <div class="archive-card-info"><h4>${j.name}</h4><p>${[j.client,j.date,cnt+' items'].filter(Boolean).join(' · ')}</p></div>
+          <div class="archive-card-actions">
+            <button class="btn-action" onclick="unarchiveJob(${j.id})">Restore</button>
+            <button class="btn-action" style="color:#dc2626;border-color:#3a1a1a" onclick="deleteJob(${j.id})">Delete</button>
+          </div>
+        </div>`;
+      }).join('')+`</div>`;
+    }
+    if(job&&job.archived||!job) return;
+  }
+
+  if(!job){content.innerHTML=`<div class="empty-state">No active jobs. Create one to get started.</div>`;return;}
+
+  const jobGear=JSON.parse(JSON.stringify(getGear()));
+  (job.customItems||[]).forEach(ci=>{
+    const cat=ci.cat||'Custom';
+    if(!jobGear[cat]) jobGear[cat]=[];
+    if(!jobGear[cat].find(x=>x.n===ci.n)) jobGear[cat].push({n:ci.n,p:ci.p});
+  });
+
+  const selectedItems=Object.entries(job.checked).filter(([,v])=>v).map(([k])=>k);
+  const packedCnt=selectedItems.filter(k=>job.packed[k]).length;
+  const returnedCnt=selectedItems.filter(k=>job.returned[k]).length;
+  const days=job.days||1;
+  const total=selectedItems.reduce((s,k)=>s+getEffectivePrice(k,job),0)*days;
+
+  let html=`
+  <div class="job-meta">
+    <span class="meta-label">Pickup</span>
+    <input class="meta-date" type="date" value="${job.pickup||''}" onchange="setJobField(${job.id},'pickup',this.value)">
+    <span class="meta-label" style="margin-left:4px">Return</span>
+    <input class="meta-date" type="date" value="${job.returnDate||''}" onchange="setJobField(${job.id},'returnDate',this.value)">
+    <div class="job-action-btns">
+      <button class="btn-action" onclick="publishToCalendar()">&#128197; Calendar</button>
+      <button class="btn-action" onclick="downloadPDF()">&#8595; Download PDF</button>
+      <button class="btn-action" onclick="archiveJob(${job.id})">Archive</button>
+      <button class="btn-action" style="color:#dc2626;border-color:#3a1a1a" onclick="deleteJob(${job.id})">Delete</button>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">On this job</div><div class="stat-value">${selectedItems.length}</div></div>
+    <div class="stat"><div class="stat-label">Packed</div><div class="stat-value">${packedCnt}</div></div>
+    <div class="stat"><div class="stat-label">Returned</div><div class="stat-value">${returnedCnt}</div></div>
+    <div class="stat"><div class="stat-label">Days</div><div class="stat-value">${days} <button onclick="promptDays()" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:inherit">edit</button></div></div>
+    <div class="stat"><div class="stat-label">Total</div><div class="stat-value">$${total.toLocaleString()}</div></div>
+  </div>`;
+
+  // Pack panel
+  html+=`<div class="pack-panel">
+    <div class="pack-panel-header" onclick="togglePack()">
+      <div class="pack-panel-title">Pack list</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="pack-progress">${packedCnt}/${selectedItems.length} packed &nbsp;·&nbsp; ${returnedCnt}/${selectedItems.length} returned</span>
+        <span class="chevron${packCollapsed?'':' open'}">&#9660;</span>
+      </div>
+    </div>`;
+  if(!packCollapsed){
+    if(!selectedItems.length){
+      html+=`<div class="empty-pack">No gear selected — check items below to build your pack list</div>`;
+    } else {
+      html+=`<div class="pack-col-headers"><span class="pack-col-hdr">Item</span><span class="pack-col-hdr">Packed</span><span class="pack-col-hdr">Returned</span></div>`;
+      for(const item of selectedItems){
+        const pkd=job.packed[item]||false,ret=job.returned[item]||false,note=job.notes[item]||'';
+        let cls='pack-item';if(ret)cls+=' is-returned';else if(pkd)cls+=' is-packed';
+        html+=`<div class="${cls}">
+          <div><div class="pack-item-name">${item}</div>${note?`<div class="pack-item-note">${note}</div>`:''}</div>
+          <div class="cb-cell"><input type="checkbox" ${pkd?'checked':''} onchange="togglePacked('${item.replace(/'/g,"\\'")}')"></div>
+          <div class="cb-cell"><input type="checkbox" ${ret?'checked':''} onchange="toggleReturned('${item.replace(/'/g,"\\'")}')"></div>
+        </div>`;
+      }
+    }
+  }
+  html+=`</div>`;
+
+  // Gear sections
+  for(const [sec,items] of Object.entries(jobGear)){
+    const sc=items.filter(g=>job.checked[g.n]).length;
+    const secTotal=items.filter(g=>job.checked[g.n]).reduce((s,g)=>s+getEffectivePrice(g.n,job),0)*days;
+    const open=!collapsed[sec];
+    html+=`<div class="section">
+      <div class="section-header" onclick="toggleSec('${sec.replace(/'/g,"\\'")}')">
+        <div class="section-title">${sec}${sc>0?` <span class="section-badge">${sc}</span>`:''}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${secTotal>0?`<span style="font-size:12px;color:var(--text3)">$${secTotal.toLocaleString()}</span>`:''}
+          <span class="chevron${open?' open':''}">&#9660;</span>
+        </div>
+      </div>`;
+    if(open){
+      html+=`<div class="gear-list">`;
+      for(const g of items){
+        const item=g.n,chk=job.checked[item]||false;
+        const note=(job.notes[item]||'').replace(/"/g,'&quot;');
+        const effPrice=getEffectivePrice(item,job);
+        const hasCustomPrice=job.customPrices[item]!==undefined;
+        const cid='c_'+item.replace(/\W/g,'_');
+        html+=`<div class="gear-item${chk?' is-selected':''}">
+          <input type="checkbox" id="${cid}" ${chk?'checked':''} onchange="toggleCheck('${item.replace(/'/g,"\\'")}')">
+          <label for="${cid}">${item}</label>
+          <span class="price-display${hasCustomPrice?' has-custom':''}" onclick="openPriceModal('${item.replace(/'/g,"\\'")}')">
+            ${effPrice>0?`$${effPrice}`:`<span style="color:var(--text3)">$—</span>`}
+          </span>
+          <input class="note-input" type="text" placeholder="note..." value="${note}" onchange="setNote('${item.replace(/'/g,"\\'")}',this.value)">
+        </div>`;
+      }
+      html+=`<button class="add-custom-btn" onclick="openCustomItemModal()">+ Add item</button>`;
+      html+=`</div>`;
+    }
+    html+=`</div>`;
+  }
+
+  content.innerHTML=html;
+}
+
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});
+});
+document.getElementById('njName').addEventListener('keydown',e=>{if(e.key==='Enter')addJob();});
+document.getElementById('priceModalVal').addEventListener('keydown',e=>{if(e.key==='Enter')savePriceOverride();});
+document.getElementById('ciName').addEventListener('keydown',e=>{if(e.key==='Enter')addCustomItem();});
+
+render();
+</script>
+</body>
+</html>
