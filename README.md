@@ -4,9 +4,12 @@ A single-file web app for tracking gear across video production jobs. Built with
 
 **Features:**
 - Job tabs with pack list, packed/returned tracking
-- Custom pricing per job
+- Pickup and return date pickers per job
+- One-tap Google Calendar event publishing
+- Rental days multiplier — daily rates × days = total
+- Custom pricing overrides per job
 - Custom gear items (per job or permanent)
-- Archive completed jobs
+- Archive completed jobs to a separate tab
 - Works on mobile
 
 ---
@@ -27,15 +30,16 @@ Here's my gear list:
 [PASTE YOUR GEAR LIST HERE — item names and daily rental rates if you have them. Categories help too, e.g. Camera, Lenses, Audio, Lighting, Grip, etc.]
 
 The app should:
-- Let me create jobs (name, date, client)
+- Let me create jobs (name, date, client, number of rental days, pickup date, return date)
 - Check off gear for each job from my master list
 - Show a pack list at the top with packed and returned checkboxes
 - Highlight selected gear in yellow, packed in green, returned in blue
-- Show a running total based on daily rental rates
+- Show a running total: daily rates × number of rental days
+- Let me override the price on any item per job by clicking the price
 - Let me add custom notes per item
-- Let me override the price on any item per job
-- Let me add custom items not on my master list (either for one job or permanently)
-- Archive completed jobs to a separate tab
+- Let me add custom items not on my master list (either for one job or permanently to the master list)
+- Archive completed jobs to a separate tab, with restore and delete options
+- A button to publish the job to Google Calendar as an all-day event spanning pickup → return date, titled "Client - Job Name - Rental", with a link to the hosted app in the event body
 - Save all state to localStorage so it persists between sessions
 - Work well on mobile
 
