@@ -122,6 +122,9 @@ h1{font-size:20px;font-weight:500;margin-bottom:4px}
     <div class="modal-field"><label>Job Name</label><input type="text" id="njName" placeholder="e.g. NCAR Shoot" /></div>
     <div class="modal-field"><label>Date</label><input type="text" id="njDate" placeholder="e.g. 6/15" /></div>
     <div class="modal-field"><label>Client</label><input type="text" id="njClient" placeholder="Client name" /></div>
+    <div class="modal-field"><label>Rental Days</label><input type="number" id="njDays" placeholder="1" min="1" value="1" /></div>
+    <div class="modal-field"><label>Pickup Date</label><input type="date" id="njPickup" /></div>
+    <div class="modal-field"><label>Return Date</label><input type="date" id="njReturn" /></div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('newJobModal')">Cancel</button>
       <button class="btn-primary" onclick="addJob()">Create Job</button>
@@ -223,6 +226,9 @@ jobs.forEach(j=>{
   if(!j.customPrices) j.customPrices={};
   if(!j.customItems) j.customItems=[];
   if(j.archived===undefined) j.archived=false;
+  if(!j.days) j.days=1;
+  if(!j.pickup) j.pickup='';
+  if(!j.returnDate) j.returnDate='';
 });
 
 function getGear(){
@@ -250,12 +256,18 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 function addJob(){
   const name=document.getElementById('njName').value.trim();
   if(!name)return;
-  const job={id:nextId++,name,date:document.getElementById('njDate').value.trim(),client:document.getElementById('njClient').value.trim(),archived:false,checked:{},packed:{},returned:{},notes:{},customPrices:{},customItems:[]};
+  const days=parseInt(document.getElementById('njDays').value)||1;
+  const pickup=document.getElementById('njPickup').value;
+  const ret=document.getElementById('njReturn').value;
+  const job={id:nextId++,name,date:document.getElementById('njDate').value.trim(),client:document.getElementById('njClient').value.trim(),days,pickup,returnDate:ret,archived:false,checked:{},packed:{},returned:{},notes:{},customPrices:{},customItems:[]};
   jobs.push(job);
   activeId=job.id;
   currentView='active';
   closeModal('newJobModal');
   ['njName','njDate','njClient'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('njDays').value='1';
+  document.getElementById('njPickup').value='';
+  document.getElementById('njReturn').value='';
   saveState();render();
 }
 
@@ -335,6 +347,35 @@ function addCustomItem(){
   saveState();render();
 }
 
+function setJobField(id,field,val){
+  const j=jobs.find(j=>j.id===id);if(!j)return;
+  j[field]=val;saveState();
+}
+
+function publishToCalendar(){
+  const job=getJob();if(!job)return;
+  if(!job.pickup||!job.returnDate){
+    alert('Please set a pickup and return date before publishing to calendar.');return;
+  }
+  const title=encodeURIComponent((job.client?job.client+' - ':'')+job.name+' - Rental');
+  const body=encodeURIComponent('Rental order: https://mercantilecodes.github.io/gearlist');
+  // Google Calendar uses YYYYMMDD for all-day events
+  const start=job.pickup.replace(/-/g,'');
+  // GCal end date for all-day is exclusive so add 1 day
+  const endDate=new Date(job.returnDate);endDate.setDate(endDate.getDate()+1);
+  const end=endDate.toISOString().slice(0,10).replace(/-/g,'');
+  const url=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${body}`;
+  window.open(url,'_blank');
+}
+
+function promptDays(){
+  const job=getJob();if(!job)return;
+  const val=prompt('Number of rental days:',job.days||1);
+  if(val===null)return;
+  const d=parseInt(val);
+  if(d>0){job.days=d;saveState();render();}
+}
+
 function render(){
   // View tabs
   document.getElementById('tabActive').classList.toggle('active',currentView==='active');
@@ -392,12 +433,30 @@ function render(){
   const selectedItems=Object.entries(job.checked).filter(([,v])=>v).map(([k])=>k);
   const packedCnt=selectedItems.filter(k=>job.packed[k]).length;
   const returnedCnt=selectedItems.filter(k=>job.returned[k]).length;
-  const total=selectedItems.reduce((s,k)=>s+getEffectivePrice(k,job),0);
+  const days=job.days||1;
+  const dailyTotal=selectedItems.reduce((s,k)=>s+getEffectivePrice(k,job),0);
+  const total=dailyTotal*days;
 
-  let html=`<div class="stats">
+  const pickupVal=job.pickup||'';
+  const returnVal=job.returnDate||'';
+
+  let html=`<div class="job-meta" style="background:#fff;border-radius:10px;border:1px solid #eee;padding:12px 16px;margin-bottom:12px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.4px">Pickup</span>
+      <input type="date" value="${pickupVal}" onchange="setJobField(${job.id},'pickup',this.value)" style="border:1px solid #eee;border-radius:6px;padding:4px 8px;font-size:13px;font-family:inherit;color:#1a1a1a;background:#fff">
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.4px">Return</span>
+      <input type="date" value="${returnVal}" onchange="setJobField(${job.id},'returnDate',this.value)" style="border:1px solid #eee;border-radius:6px;padding:4px 8px;font-size:13px;font-family:inherit;color:#1a1a1a;background:#fff">
+    </div>
+    <div style="flex:1"></div>
+    <button onclick="publishToCalendar()" style="padding:6px 14px;background:#1a1a1a;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap">&#128197; Add to Google Calendar</button>
+  </div>
+  <div class="stats" style="grid-template-columns:repeat(5,1fr)">
     <div class="stat"><div class="stat-label">On this job</div><div class="stat-value">${selectedItems.length}</div></div>
     <div class="stat"><div class="stat-label">Packed</div><div class="stat-value">${packedCnt}</div></div>
     <div class="stat"><div class="stat-label">Returned</div><div class="stat-value">${returnedCnt}</div></div>
+    <div class="stat"><div class="stat-label">Days</div><div class="stat-value" style="display:flex;align-items:center;gap:6px">${days} <button onclick="promptDays()" style="font-size:11px;color:#bbb;background:none;border:none;cursor:pointer;padding:0;font-family:inherit">edit</button></div></div>
     <div class="stat"><div class="stat-label">Total rental</div><div class="stat-value">$${total.toLocaleString()}</div></div>
   </div>
   <div class="job-actions">
@@ -434,7 +493,7 @@ function render(){
   // Gear sections
   for(const [sec,items] of Object.entries(jobGear)){
     const sc=items.filter(g=>job.checked[g.n]).length;
-    const secTotal=items.filter(g=>job.checked[g.n]).reduce((s,g)=>s+getEffectivePrice(g.n,job),0);
+    const secTotal=items.filter(g=>job.checked[g.n]).reduce((s,g)=>s+getEffectivePrice(g.n,job),0)*days;
     const open=!collapsed[sec];
     html+=`<div class="section">
       <div class="section-header" onclick="toggleSec('${sec.replace(/'/g,"\\'")}')">
