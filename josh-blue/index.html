@@ -81,6 +81,15 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);margin:0;
   .rate{grid-column:3;grid-row:2;text-align:right}
   .lbl{display:inline}
 }
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.ov[hidden]{display:none}
+.modal{position:relative;background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:20px;width:100%;max-width:520px;max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.modal h3{margin:0;font-size:19px;letter-spacing:-.01em}
+.modal textarea{width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.5;resize:vertical}
+.mnote{margin:0;font-size:13px;color:var(--text3)}
+.mnote a{color:inherit}
+.mact{display:flex;gap:8px;flex-wrap:wrap}
+.close{position:absolute;top:10px;right:12px;border:0;background:none;font-size:24px;line-height:1;color:var(--text3);cursor:pointer}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
 </head>
@@ -88,7 +97,7 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);margin:0;
 <div class="wrap">
   <p class="eyebrow">Mercantile Images · Gear list</p>
   <h1>Josh Blue · Newman Center · Dec 19</h1>
-  <p class="lede">Here's the Mercantile kit available for the special. Check what you'd like, set quantities and days, then hit Send request. I'll confirm availability and send over a quote.</p>
+  <p class="lede">Here's the Mercantile kit available for the special. Check what you'd like, set quantities and days, then hit Send request to email or text me your list. I'll confirm availability and send over a quote.</p>
   <div class="controls">
     <input class="search" id="q" type="search" placeholder="Search gear" autocomplete="off" aria-label="Search gear">
     <label class="days">Days <input id="days" type="number" min="1" value="1" inputmode="numeric"></label>
@@ -101,7 +110,21 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);margin:0;
   <div class="wrap">
     <div class="tot"><strong class="num" id="total">$0</strong><small id="sub">Nothing selected yet</small></div>
     <button class="btn" id="copy" aria-disabled="true">Copy list</button>
-    <a class="btn primary" id="send" href="#" aria-disabled="true">Send request</a>
+    <button class="btn primary" id="send" aria-disabled="true">Send request</button>
+  </div>
+</div>
+<div class="ov" id="dlg" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <h3 id="dlgT">Send your request</h3>
+    <p class="mnote">Pick whichever works for you. It goes to <a href="mailto:trevrmerchant@gmail.com">trevrmerchant@gmail.com</a>.</p>
+    <textarea id="reqText" rows="10" readonly aria-label="Your request"></textarea>
+    <div class="mact">
+      <a class="btn primary" id="gmail" target="_blank" rel="noopener">Open in Gmail</a>
+      <a class="btn" id="mailapp">Open email app</a>
+      <button class="btn" id="copy2">Copy request</button>
+    </div>
+    <p class="mnote">Or copy it and text it to Trevr.</p>
+    <button class="close" id="close" aria-label="Close">×</button>
   </div>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -162,7 +185,6 @@ function summary() {
   const dis = c.length ? 'false' : 'true';
   $('copy').setAttribute('aria-disabled', dis);
   $('send').setAttribute('aria-disabled', dis);
-  $('send').href = c.length ? `mailto:${EMAIL}?subject=${encodeURIComponent('Gear request: ' + JOB)}&body=${encodeURIComponent(text())}` : '#';
 }
 function text() {
   const c = chosen();
@@ -186,10 +208,27 @@ document.addEventListener('click', e => {
 });
 $('q').addEventListener('input', render);
 $('days').addEventListener('input', e => { days = Math.max(1, parseInt(e.target.value) || 1); save(); summary(); });
-$('copy').addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText(text()); toast('Copied. Paste it into a text or email.'); }
-  catch (e) { toast('Copy did not work here. Use Send request instead.'); }
-});
+async function copyText() {
+  const t = text();
+  try { await navigator.clipboard.writeText(t); toast('Copied. Paste it into a text or email.'); return; } catch (e) {}
+  const ta = $('reqText'); ta.value = t; ta.select();
+  try { document.execCommand('copy'); toast('Copied. Paste it into a text or email.'); }
+  catch (e) { toast('Select the text and copy it manually.'); }
+}
+function openDialog() {
+  const t = text(), subj = 'Gear request: ' + JOB;
+  $('reqText').value = t;
+  $('gmail').href = `https://mail.google.com/mail/?view=cm&fs=1&to=${EMAIL}&su=${encodeURIComponent(subj)}&body=${encodeURIComponent(t)}`;
+  $('mailapp').href = `mailto:${EMAIL}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(t)}`;
+  $('dlg').hidden = false; $('gmail').focus();
+}
+function closeDialog() { $('dlg').hidden = true; $('send').focus(); }
+$('copy').addEventListener('click', copyText);
+$('copy2').addEventListener('click', copyText);
+$('send').addEventListener('click', () => { if (chosen().length) openDialog(); });
+$('close').addEventListener('click', closeDialog);
+$('dlg').addEventListener('click', e => { if (e.target === $('dlg')) closeDialog(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('dlg').hidden) closeDialog(); });
 render();
 </script>
 </body>
