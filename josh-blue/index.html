@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Josh Blue Gear List</title>
+<meta name="description" content="Mercantile Images gear available for the Josh Blue special at the Newman Center, December 19.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f6f3f2;--surface:#fff;--surface2:#f1ecec;--border:#e6dfdf;--border2:#d6cdcd;
+  --text:#1b1617;--text2:#5a5052;--text3:#857a7c;
+  --accent:#b91c1c;--accent-soft:#fbe9e9;--on-accent:#fff;--sel:#fbf3d6;
+  --body:'Archivo',ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121011;--surface:#1b1819;--surface2:#242021;--border:#2e292a;--border2:#3d3637;
+  --text:#f2eeee;--text2:#b3abac;--text3:#8a8082;
+  --accent:#ef4444;--accent-soft:#2c1a1a;--on-accent:#fff;--sel:#2a2410;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121011;--surface:#1b1819;--surface2:#242021;--border:#2e292a;--border2:#3d3637;
+  --text:#f2eeee;--text2:#b3abac;--text3:#8a8082;
+  --accent:#ef4444;--accent-soft:#2c1a1a;--on-accent:#fff;--sel:#2a2410;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.55;padding:28px 16px 140px}
+.wrap{max-width:820px;margin:0 auto}
+button,input{font:inherit;color:inherit}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;letter-spacing:-.02em;margin:0 0 10px;font-weight:700}
+.lede{color:var(--text2);margin:0 0 20px;max-width:62ch}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.search{flex:1 1 220px;padding:9px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface)}
+.days{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)}
+.days input{width:64px;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);text-align:center}
+.sec{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.sec h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:0;padding:12px 16px;border-bottom:1px solid var(--border);font-weight:600}
+.row,.cols{display:grid;grid-template-columns:22px minmax(0,1fr) 64px 100px 110px;gap:12px;align-items:center;padding:10px 16px;border-top:1px solid var(--border)}
+.cols{padding-block:7px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);border-top:0}
+.cols span:nth-child(3),.cols span:nth-child(4){text-align:center}
+.cols span:last-child{text-align:right}
+.avail{text-align:center;color:var(--text2);font-size:14px}
+.row.sel{background:var(--sel)}
+.row label{cursor:pointer;min-width:0}
+.name{display:block}
+.own{display:block;font-size:12px;color:var(--text3)}
+.rate{text-align:right;color:var(--text2);font-size:14px;white-space:nowrap}
+.rate.ask{color:var(--text3);font-family:var(--body);font-size:13px}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);margin:0;cursor:pointer}
+.qty{display:flex;align-items:center;gap:4px;justify-self:center}
+.qty button{width:28px;height:28px;border:1px solid var(--border2);border-radius:6px;background:var(--surface2);cursor:pointer;line-height:1}
+.qty button:disabled{opacity:.35;cursor:default}
+.qty span{min-width:22px;text-align:center}
+.inc{padding:0 16px 12px 50px;font-size:13px;color:var(--text3)}
+.lbl{display:none;font-size:11px;color:var(--text3);margin-right:4px}
+.empty{padding:24px;text-align:center;color:var(--text3)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border2);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.bar .wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.tot{flex:1 1 200px}
+.tot strong{font-size:20px;display:block}
+.tot small{color:var(--text3);font-size:12px}
+.btn{padding:10px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);cursor:pointer;font-weight:500;text-decoration:none;color:var(--text)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn[aria-disabled="true"]{opacity:.45;pointer-events:none}
+.note{font-size:13px;color:var(--text3);margin:20px 0 0}
+.note a{color:inherit}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media (max-width:560px){
+  h1{font-size:25px}
+  .cols{display:none}
+  .row{grid-template-columns:22px minmax(0,1fr) auto;row-gap:6px}
+  .row label{grid-column:2}
+  .qty{grid-column:3;grid-row:1}
+  .avail{grid-column:2;grid-row:2;text-align:left;font-size:13px}
+  .rate{grid-column:3;grid-row:2;text-align:right}
+  .lbl{display:inline}
+}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Mercantile Images · Gear list</p>
+  <h1>Josh Blue · Newman Center · Dec 19</h1>
+  <p class="lede">Here's the Mercantile kit available for the special. Check what you'd like, set quantities and days, then hit Send request. I'll confirm availability and send over a quote.</p>
+  <div class="controls">
+    <input class="search" id="q" type="search" placeholder="Search gear" autocomplete="off" aria-label="Search gear">
+    <label class="days">Days <input id="days" type="number" min="1" value="1" inputmode="numeric"></label>
+  </div>
+  <div id="list"></div>
+  <p class="note">Rates are per day. "Ask" means the item is available and priced with your quote. Questions? <a href="mailto:trevrmerchant@gmail.com">trevrmerchant@gmail.com</a> · <a href="https://trevrmerchant.com">trevrmerchant.com</a></p>
+</div>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="tot"><strong class="num" id="total">$0</strong><small id="sub">Nothing selected yet</small></div>
+    <button class="btn" id="copy" aria-disabled="true">Copy list</button>
+    <a class="btn primary" id="send" href="#" aria-disabled="true">Send request</a>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const DATA = {"cats": [{"cat": "Power", "items": [{"n": "Gold mount batteries", "p": 15, "q": 9}, {"n": "Mach 4 dual charger (Gold mount)", "p": 30, "q": 1}, {"n": "Mach 4 quad charger (Gold mount)", "p": 50, "q": 1}, {"n": "V-mount batteries", "p": 10, "q": 6}, {"n": "IDX dual charger (V-mount)", "p": 10, "q": 2}]}, {"cat": "Support", "items": [{"n": "CamGear Elite 18 Tripod", "p": 60, "q": 1}, {"n": "Sachtler Video 18 Tripod", "p": 60, "q": 1}, {"n": "Sachtler Video 17 Tripod", "p": 50, "q": 1}, {"n": "Dana Dolly Kit", "p": 50, "q": 1}, {"n": "Tripod Dolly", "p": 25, "q": 1}, {"n": "DJI Ronin RS3", "p": 125, "q": 1}, {"n": "EasyRig Vario 5 + Serene Arm", "p": 175, "q": 1}]}, {"cat": "Video Assist", "items": [{"n": "Atomos 19M 19in Monitor", "p": 75, "q": 1}, {"n": "Flanders DM240 24in Monitor", "p": 175, "q": 1}, {"n": "Flanders DM170 17in Monitor", "p": 75, "q": 1}, {"n": "SmallHD Cine7 500XT", "p": 150, "q": 1}, {"n": "SmallHD Ultra7 7in Monitor", "p": 125, "q": 1}, {"n": "Teradek Bolt 6 (1:1)", "p": 150, "q": 1}, {"n": "Teradek Bolt 500 XT (1:2)", "p": 100, "q": 1}, {"n": "Macbook Pro", "p": 50, "q": 1}, {"n": "iPad M1", "p": 35, "q": 1}, {"n": "iKan Teleprompter", "p": 125, "q": 1}]}, {"cat": "Camera", "items": [{"n": "Red Raptor 8K VV", "p": 900, "q": 1}, {"n": "Canon R5C", "p": 350, "q": 1}, {"n": "Canon C500 MKII", "p": 450, "q": 1}]}, {"cat": "Lenses", "items": [{"n": "Laowa Ranger 16-30mm T2.9", "p": 150, "q": 1}, {"n": "Laowa Ranger 28-75mm T2.9", "p": 150, "q": 1}, {"n": "Laowa Ranger 75-180mm T2.9", "p": 150, "q": 1}, {"n": "Canon RF 15-35mm F/2.8", "p": 75, "q": 1}, {"n": "Canon RF 28-70mm F/2", "p": 75, "q": 1}, {"n": "Canon EF 70-200mm F/2.8", "p": 75, "q": 1}, {"n": "Canon EF 35mm F/1.4", "p": 50, "q": 1}, {"n": "Canon EF 85mm F/1.4", "p": 50, "q": 1}, {"n": "Nikon Vintage 24mm F/2", "p": 30, "q": 1}, {"n": "Nikon Vintage 35mm F/2", "p": 30, "q": 1}, {"n": "Nikon Vintage 50mm F/1.2", "p": 30, "q": 1}, {"n": "Nikon Vintage 85mm F/1.4", "p": 30, "q": 1}]}, {"cat": "Audio", "items": [{"n": "Sound Devices Mix Pre 6", "p": 250, "q": 1}, {"n": "Rode Wireless Lav", "p": 0, "q": 1}, {"n": "Sanken COS 11D Wired Lav", "p": 0, "q": 1}, {"n": "Sennheiser MKH 50 Dialog Mic", "p": 0, "q": 1}, {"n": "Boom Pole", "p": 0, "q": 1}, {"n": "Headphones", "p": 0, "q": 1}]}, {"cat": "Lighting", "items": [{"n": "Aputure 1200X", "p": 250, "q": 1}, {"n": "Aputure Storm 400X", "p": 125, "q": 1}, {"n": "Aputure 600D", "p": 105, "q": 1}, {"n": "Aputure Nova P600C", "p": 125, "q": 2}, {"n": "Aputure 80C", "p": 50, "q": 1}, {"n": "Amaran F21C", "p": 50, "q": 1}, {"n": "Amaran F22C + Lantern", "p": 75, "q": 1}, {"n": "Aputure B7C bulbs (pair)", "p": 15, "q": 1}, {"n": "Intellytech Mega 8 RGBWW", "p": 150, "q": 1}, {"n": "Pavotubes", "p": 125, "q": 1}]}, {"cat": "Streaming", "items": [{"n": "ATEM Mini Pro", "p": 0, "q": 1}, {"n": "Camlink 4K", "p": 150, "q": 1}, {"n": "Scarlett 4i4", "p": 0, "q": 1}, {"n": "SDI/HDMI Converters", "p": 0, "q": 1}, {"n": "SDI Cable set", "p": 0, "q": 1}, {"n": "HDMI Cable set", "p": 0, "q": 1}, {"n": "Hollyland Solidcom (6-pack)", "p": 150, "q": 1}, {"n": "vMix PC", "p": 300, "q": 1}]}], "pkg": {"n": "Van grip package", "p": 400, "includes": ["4x4 Butterfly Kit", "6x6 Butterfly Kit", "8x8 Butterfly Kit", "C-Stands \u00d712", "Triple Riser Combo Stand \u00d72", "Double Riser Combo Stand \u00d72", "Slider Stand / Low Boy Combo \u00d72", "Baby Stands \u00d76", "Shot Bags 25lb \u00d712", "Shot Bags 35lb \u00d78", "Apple Box Sets", "Magliner Junior Cart", "Rock n Roller R12", "Grip House C-Stand Cart", "Uline Hampers \u00d72", "Folding Tables \u00d72", "Camp Chairs \u00d76", "6-step ladder", "8-step ladder", "2020 Ram Promaster 2500 + liftgate"]}};
+const EMAIL = 'trevrmerchant@gmail.com';
+const JOB = 'Josh Blue · Newman Center · Dec 19';
+const KEY = 'mi-joshblue-v1';
+
+const items = [];
+DATA.cats.forEach(c => c.items.forEach(i => items.push({id: c.cat + '|' + i.n, cat: c.cat, n: i.n, p: i.p, q: i.q})));
+items.push({id: 'pkg', cat: 'Grip & Electric', n: DATA.pkg.n, p: DATA.pkg.p, q: 1, includes: DATA.pkg.includes});
+
+let sel = {}, days = 1;
+try { const s = JSON.parse(localStorage.getItem(KEY) || '{}'); sel = s.sel || {}; days = Math.max(1, s.days || 1); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify({sel, days})); } catch (e) {} }
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => '$' + Math.round(n).toLocaleString();
+$('days').value = days;
+
+function render() {
+  const qs = $('q').value.trim().toLowerCase();
+  const cats = [...new Set(items.map(i => i.cat))];
+  let h = '';
+  cats.forEach(cat => {
+    const rows = items.filter(i => i.cat === cat && (!qs || i.n.toLowerCase().includes(qs) || cat.toLowerCase().includes(qs) || (i.includes || []).join(' ').toLowerCase().includes(qs)));
+    if (!rows.length) return;
+    h += `<section class="sec"><h2>${esc(cat)}</h2><div class="cols"><span></span><span>Item</span><span>Available</span><span>Qty</span><span>Rate</span></div>`;
+    rows.forEach(i => {
+      const q = sel[i.id] || 0, on = q > 0, cid = 'c' + items.indexOf(i), id = esc(i.id);
+      h += `<div class="row${on ? ' sel' : ''}">
+        <input type="checkbox" id="${cid}" data-id="${id}"${on ? ' checked' : ''} aria-label="Select ${esc(i.n)}">
+        <label for="${cid}"><span class="name">${esc(i.n)}</span></label>
+        <span class="avail num"><span class="lbl">Available</span>${i.q}</span>
+        <div class="qty"><button data-d="-1" data-id="${id}" aria-label="Fewer ${esc(i.n)}"${q === 0 ? ' disabled' : ''}>−</button><span class="num" aria-live="polite">${q}</span><button data-d="1" data-id="${id}" aria-label="More ${esc(i.n)}"${q >= i.q ? ' disabled' : ''}>+</button></div>
+        <span class="rate num${i.p ? '' : ' ask'}">${i.p ? money(i.p) + '/day' + (i.q > 1 ? ' ea' : '') : 'Ask'}</span>
+      </div>`;
+      if (i.includes) h += `<div class="inc">Includes: ${esc(i.includes.join(', '))}</div>`;
+    });
+    h += '</section>';
+  });
+  $('list').innerHTML = h || `<div class="sec empty">No gear matches “${esc(qs)}”.</div>`;
+  summary();
+}
+
+function chosen() { return items.filter(i => sel[i.id] > 0); }
+function summary() {
+  const c = chosen();
+  const perDay = c.reduce((s, i) => s + i.p * sel[i.id], 0);
+  const asks = c.filter(i => !i.p).length;
+  $('total').textContent = c.length ? money(perDay * days) : '$0';
+  $('sub').textContent = c.length
+    ? `${c.length} item${c.length > 1 ? 's' : ''} · ${money(perDay)}/day × ${days} day${days > 1 ? 's' : ''}${asks ? ` · ${asks} priced on quote` : ''}`
+    : 'Nothing selected yet';
+  const dis = c.length ? 'false' : 'true';
+  $('copy').setAttribute('aria-disabled', dis);
+  $('send').setAttribute('aria-disabled', dis);
+  $('send').href = c.length ? `mailto:${EMAIL}?subject=${encodeURIComponent('Gear request: ' + JOB)}&body=${encodeURIComponent(text())}` : '#';
+}
+function text() {
+  const c = chosen();
+  const perDay = c.reduce((s, i) => s + i.p * sel[i.id], 0);
+  const lines = c.map(i => `- ${i.n}${sel[i.id] > 1 ? ' ×' + sel[i.id] : ''}: ${i.p ? money(i.p * sel[i.id]) + '/day' : 'rate on quote'}`);
+  return `Hey Trevr,\n\nHere's the gear we'd like for ${JOB}, ${days} day${days > 1 ? 's' : ''}:\n\n${lines.join('\n')}\n\nEstimated: ${money(perDay)}/day, ${money(perDay * days)} total (plus any items priced on quote).\n\nThanks!`;
+}
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 1600); }
+
+document.addEventListener('change', e => {
+  const id = e.target.dataset.id; if (!id) return;
+  if (e.target.checked) sel[id] = 1; else delete sel[id];
+  save(); render();
+});
+document.addEventListener('click', e => {
+  const b = e.target.closest('.qty button'); if (!b) return;
+  const i = items.find(x => x.id === b.dataset.id);
+  const next = Math.min(i.q, Math.max(0, (sel[i.id] || 0) + Number(b.dataset.d)));
+  if (next) sel[i.id] = next; else delete sel[i.id];
+  save(); render();
+});
+$('q').addEventListener('input', render);
+$('days').addEventListener('input', e => { days = Math.max(1, parseInt(e.target.value) || 1); save(); summary(); });
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(text()); toast('Copied. Paste it into a text or email.'); }
+  catch (e) { toast('Copy did not work here. Use Send request instead.'); }
+});
+render();
+</script>
+</body>
+</html>
